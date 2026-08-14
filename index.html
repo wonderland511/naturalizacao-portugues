@@ -192,9 +192,28 @@
     color:var(--text-secondary); font-size:13px; text-align:center; border-top:1px solid var(--border);
   }
 
-  /* .reveal видим по умолчанию — JS ниже лишь прогрессивно анимирует появление,
-     если скрипт с CDN не загрузится (блокировщики, Safari ITP), контент останется видимым */
-  .reveal{opacity:1; transform:none;}
+  /* Появление — чистый CSS, без JS/inView: анимация гарантированно выполняется
+     самим браузером при отрисовке, никакой сетевой зависимости и риска "навсегда невидимо" */
+  @keyframes fadeInUp{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+  .reveal, .timeline-item, .contact-row{ animation:fadeInUp .6s cubic-bezier(0.22,1,0.36,1) both; }
+  .hero .eyebrow{animation:fadeInUp .5s ease-out both;}
+  .hero h1{animation:fadeInUp .6s ease-out .08s both;}
+  .hero p{animation:fadeInUp .6s ease-out .16s both;}
+  .hero .toc a{animation:fadeInUp .5s ease-out both;}
+  .hero .toc a:nth-child(1){animation-delay:.24s;}
+  .hero .toc a:nth-child(2){animation-delay:.3s;}
+  .hero-note{animation:fadeInUp .5s ease-out .36s both;}
+  .timeline-item:nth-child(1){animation-delay:.05s;}
+  .timeline-item:nth-child(2){animation-delay:.15s;}
+  .timeline-item:nth-child(3){animation-delay:.25s;}
+  .contact-row:nth-child(1){animation-delay:.03s;}
+  .contact-row:nth-child(2){animation-delay:.08s;}
+  .contact-row:nth-child(3){animation-delay:.13s;}
+  .contact-row:nth-child(4){animation-delay:.18s;}
+  .contact-row:nth-child(5){animation-delay:.23s;}
+  .contact-row:nth-child(6){animation-delay:.28s;}
+  .contact-row:nth-child(7){animation-delay:.33s;}
+  .contact-row:nth-child(8){animation-delay:.38s;}
 
   .toc{
     display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:28px;
@@ -208,7 +227,8 @@
   .toc a:hover{border-color:var(--accent); color:var(--accent);}
 
   @media (prefers-reduced-motion: reduce){
-    .reveal{opacity:1; transform:none;}
+    .reveal, .timeline-item, .contact-row,
+    .hero .eyebrow, .hero h1, .hero p, .hero .toc a, .hero-note{animation:none; opacity:1; transform:none;}
   }
 </style>
 </head>
@@ -464,33 +484,16 @@
 </footer>
 
 <script type="module">
-  // Контент виден по умолчанию (см. CSS .reveal). Анимация — необязательное
-  // улучшение: если CDN-скрипт не загрузится (блокировщики, Safari ITP, офлайн),
-  // страница просто останется статичной, но полностью видимой.
+  // Появление всего контента уже гарантировано чистым CSS (@keyframes fadeInUp).
+  // Framer Motion здесь — только необязательный косметический слой поверх hero:
+  // если CDN не загрузится, страница просто останется без этого нюанса, но полностью видимой.
   try {
-    const { animate, inView, stagger } = await import("https://cdn.jsdelivr.net/npm/motion@11/+esm");
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) throw new Error("reduced motion — skip");
-
-    animate(".hero .eyebrow", { opacity: [0, 1], y: [-10, 0] }, { duration: 0.6 });
-    animate(".hero h1", { opacity: [0, 1], y: [16, 0] }, { duration: 0.7, delay: 0.1 });
-    animate(".hero p", { opacity: [0, 1], y: [16, 0] }, { duration: 0.7, delay: 0.2 });
-    animate(".hero .toc a", { opacity: [0, 1], y: [10, 0] }, { duration: 0.5, delay: stagger(0.06, { startDelay: 0.35 }) });
-
-    inView(".reveal", (el) => {
-      animate(el, { opacity: [0, 1], y: [20, 0] }, { duration: 0.6, easing: [0.22, 1, 0.36, 1] });
-    }, { margin: "0px 0px -10% 0px" });
-
-    inView(".timeline-item", (el) => {
-      animate(el, { opacity: [0, 1], x: [-16, 0] }, { duration: 0.5, easing: [0.22, 1, 0.36, 1] });
-    }, { margin: "0px 0px -10% 0px" });
-
-    inView(".contact-row", (el) => {
-      animate(el, { opacity: [0, 1], y: [10, 0] }, { duration: 0.4 });
-    }, { margin: "0px 0px -10% 0px" });
+    const { animate, stagger } = await import("https://cdn.jsdelivr.net/npm/motion@11/+esm");
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      animate(".hero .toc a", { scale: [0.96, 1] }, { duration: 0.4, delay: stagger(0.05, { startDelay: 0.3 }) });
+    }
   } catch (e) {
-    // анимация недоступна — контент уже видим благодаря CSS-умолчаниям, ничего не делаем
+    // Framer Motion недоступен — не критично, вся видимость уже обеспечена CSS
   }
 </script>
 
